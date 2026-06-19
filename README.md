@@ -71,3 +71,13 @@ docker-compose.yml       # 3 service: database, backend, frontend
 ## 🔒 Bảo mật & ràng buộc
 
 Mã hóa mật khẩu (bcrypt), xác thực JWT, phân quyền RBAC; ràng buộc dữ liệu nhập đầy đủ (chặn số âm, sai định dạng); dùng transaction khi trừ/hoàn kho để dữ liệu luôn nhất quán.
+
+## 👥 Thành viên nhóm
+
+| MSSV | Họ tên | Vai trò |
+|------|--------|---------|
+| 110122004 | Phạm Thành Tư Hản | Nhóm trưởng / Dev chính |
+| 110122052 | Lâm Trương Định | Lập trình viên |
+| 110123198 | Ngô Thanh Trà | Lập trình viên |
+
+> Đồ án môn học **Công nghệ phần mềm** — Trường Kỹ thuật và Công nghệ, Đại học Trà Vinh.
