@@ -1,0 +1,425 @@
+/* =============================================================================
+   GIAO DIỆN tổng cho hệ thống quản lý cửa hàng dụng cụ thể thao
+   Phong cách tham khảo các phần mềm bán hàng thực tế (KiotViet, Sapo)
+
+   File CSS dùng chung cho toàn bộ frontend (React/Vite). Nội dung gồm:
+   - Khai báo biến màu/đổ bóng dùng lại (:root)
+   - Reset cơ bản và kiểu chữ tổng (body)
+   - Bố cục khung (sidebar + khu vực chính), thanh tiêu đề, menu
+   - Các thành phần dùng lại: nút, ô tìm kiếm, bảng, chip nhãn, modal, form
+   - Trang đăng nhập, dashboard (tổng quan), trang bán hàng, phân trang
+   - Quy tắc khi IN / xuất PDF (ẩn menu, chỉ in nội dung báo cáo/hóa đơn)
+   Lưu ý: tên class viết bằng tiếng Việt không dấu cho dễ đọc theo nghiệp vụ.
+   ========================================================================== */
+
+/* Biến CSS toàn cục: gom màu sắc và đổ bóng để dùng lại, đổi 1 chỗ là đổi toàn web */
+:root {
+  --mau-chinh: #1d4ed8;          /* xanh dương chủ đạo (đồng bộ web bán hàng) */
+  --mau-chinh-dam: #1e3a8a;
+  --mau-chinh-nhat: #eff6ff;
+  --cam: #f97316;                /* màu nhấn thương hiệu */
+  --mau-nen: #f1f5f9;            /* nền tổng */
+  --sidebar-1: #1e3a8a;          /* nền menu navy (đồng bộ header web bán hàng) */
+  --sidebar-2: #0f2350;
+  --chu-dam: #0f172a;
+  --chu-nhat: #64748b;
+  --vien: #e5e9f0;
+  --do: #ef4444;
+  --xanh-la: #16a34a;
+  --vang: #f59e0b;
+  --tim: #8b5cf6;
+  --hong: #ec4899;
+  --bong: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --bong-noi: 0 4px 16px rgba(15, 23, 42, 0.10);
+}
+
+/* Reset cơ bản: dùng border-box và bỏ margin/padding mặc định của trình duyệt */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Kiểu chữ và nền tổng cho toàn trang */
+body {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--mau-nen);
+  color: var(--chu-dam);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Liên kết: kế thừa màu chữ và bỏ gạch chân mặc định */
+a { color: inherit; text-decoration: none; }
+
+/* ----------------- Màn hình chờ ----------------- */
+/* Khung canh giữa hiển thị khi đang tải dữ liệu / chờ xác thực */
+.man-hinh-cho {
+  display: flex; align-items: center; justify-content: center;
+  height: 100vh; font-size: 16px; color: var(--chu-nhat);
+}
+
+/* ----------------- Bố cục tổng ----------------- */
+/* Khung 2 phần ngang: menu trái (sidebar) + nội dung phải */
+.bo-cuc { display: flex; min-height: 100vh; }
+
+/* Thanh menu bên trái: cố định khi cuộn, cao hết màn hình, tự cuộn nếu dài */
+.sidebar {
+  width: 250px; flex-shrink: 0;
+  background: linear-gradient(180deg, var(--sidebar-1), var(--sidebar-2));
+  color: #cbd5e1;
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+
+/* Khối logo ở đầu sidebar */
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 18px 20px; color: #fff; font-weight: 800; font-size: 17px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+/* Huy hiệu chữ viết tắt cạnh logo (nền cam thương hiệu) */
+.logo-badge {
+  background: linear-gradient(135deg, #f97316, #ea580c); color: #fff;
+  font-weight: 800; font-size: 16px; padding: 6px 10px; border-radius: 9px; letter-spacing: 0.5px;
+}
+.logo .logo-chu { display: flex; flex-direction: column; font-size: 18px; font-weight: 800; line-height: 1; color: #fff; }
+.logo .logo-chu small { font-size: 10.5px; font-weight: 500; color: #93c5fd; letter-spacing: 0.3px; margin-top: 3px; }
+
+.sidebar nav { padding: 10px 0; }
+/* Nhóm các mục menu theo chức năng (vd: Quản lý, Báo cáo...) */
+.nhom-menu { padding: 12px 20px 6px; }
+/* Nhãn tiêu đề của mỗi nhóm menu (chữ in hoa, mờ) */
+.nhom-menu .nhan-nhom {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: #64748b;
+}
+
+/* Một mục menu điều hướng trong sidebar */
+.muc-menu {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 20px; color: #cbd5e1; font-size: 14.5px; font-weight: 500;
+  border-left: 3px solid transparent; transition: background 0.15s, color 0.15s;
+}
+.muc-menu svg { width: 19px; height: 19px; flex-shrink: 0; opacity: 0.9; }
+.muc-menu:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+/* Mục menu đang được chọn: làm sáng nền và viền trái màu cam */
+.muc-menu.active {
+  background: rgba(255, 255, 255, 0.12); color: #fff;
+  border-left-color: var(--cam);
+}
+.muc-menu.active svg { opacity: 1; }
+
+/* Khu vực bên phải chứa thanh tiêu đề và nội dung trang */
+.khu-vuc-chinh { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* Thanh trên cùng (header): cố định khi cuộn, chứa tiêu đề và thông tin người dùng */
+.thanh-tren {
+  background: #fff; height: 62px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; border-bottom: 1px solid var(--vien);
+  position: sticky; top: 0; z-index: 10;
+}
+/* Cụm thông tin người dùng đăng nhập (góc phải header) */
+.thong-tin-nguoi-dung { display: flex; align-items: center; gap: 14px; font-size: 14px; }
+/* Ảnh đại diện dạng chữ cái đầu (avatar tròn) */
+.avatar-chu {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-weight: 700;
+}
+
+/* Vùng nội dung chính của từng trang */
+.noi-dung { padding: 24px; flex: 1; }
+
+/* ----------------- Tiêu đề trang ----------------- */
+/* Hàng tiêu đề: tên trang bên trái, nút thao tác bên phải */
+.tieu-de-trang {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.tieu-de-trang h2 { font-size: 22px; font-weight: 700; }
+
+/* ----------------- Nút bấm ----------------- */
+/* Kiểu nút dùng chung; các biến thể bên dưới đổi màu theo mục đích */
+.nut {
+  border: none; border-radius: 8px; padding: 9px 16px; cursor: pointer;
+  font-size: 14px; font-weight: 600; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 6px; transition: 0.15s;
+}
+.nut-chinh { background: var(--mau-chinh); color: #fff; }     /* nút hành động chính (xanh) */
+.nut-chinh:hover { background: var(--mau-chinh-dam); }
+.nut-phu { background: #eef2f7; color: #334155; }             /* nút phụ / hủy (xám) */
+.nut-phu:hover { background: #e2e8f0; }
+.nut-nho { padding: 6px 11px; font-size: 13px; background: var(--mau-chinh-nhat); color: var(--mau-chinh-dam); } /* nút nhỏ trong bảng */
+.nut-nho:hover { background: #dbeafe; }
+.nut-xoa { background: #fef2f2; color: var(--do); }           /* nút xóa (đỏ) */
+.nut-xoa:hover { background: #fee2e2; }
+
+/* ----------------- Ô tìm kiếm ----------------- */
+/* Thanh tìm kiếm phía trên bảng dữ liệu */
+.thanh-tim-kiem { display: flex; gap: 8px; margin-bottom: 18px; }
+.thanh-tim-kiem input {
+  flex: 1; max-width: 360px; padding: 10px 14px;
+  border: 1px solid var(--vien); border-radius: 8px; font-size: 14px; font-family: inherit;
+}
+/* Hiệu ứng viền sáng khi ô tìm kiếm được focus */
+.thanh-tim-kiem input:focus { outline: none; border-color: var(--mau-chinh); box-shadow: 0 0 0 3px var(--mau-chinh-nhat); }
+
+/* ----------------- Bảng dữ liệu ----------------- */
+/* Thẻ bọc bảng: bo góc, đổ bóng, cho cuộn ngang khi bảng rộng */
+.the-bang {
+  background: #fff; border-radius: 12px; overflow: hidden;
+  box-shadow: var(--bong); overflow-x: auto; border: 1px solid var(--vien);
+}
+/* Bảng dữ liệu chính (danh sách sản phẩm, đơn hàng...) */
+.bang { width: 100%; border-collapse: collapse; }
+.bang th, .bang td { padding: 13px 16px; text-align: left; font-size: 14px; }
+.bang thead th {
+  background: #f8fafc; font-weight: 600; color: var(--chu-nhat);
+  font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--vien);
+}
+.bang tbody tr { border-bottom: 1px solid #f1f5f9; }
+.bang tbody tr:last-child { border-bottom: none; }
+.bang tbody tr:hover { background: #f8fafc; }
+/* Dòng thông báo khi bảng không có dữ liệu */
+.trong { text-align: center !important; color: #94a3b8; padding: 28px !important; }
+
+/* Ảnh thu nhỏ sản phẩm trong bảng */
+.anh-sp {
+  width: 44px; height: 44px; border-radius: 9px; object-fit: cover;
+  border: 1px solid var(--vien); background: #f8fafc;
+}
+.anh-sp-trong {
+  width: 44px; height: 44px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 13px;
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+}
+/* Ô gộp ảnh + tên + hãng sản phẩm trong 1 cột bảng */
+.o-sp { display: flex; align-items: center; gap: 12px; }
+.o-sp .ten-sp { font-weight: 600; }
+.o-sp .hieu-sp { font-size: 12.5px; color: var(--chu-nhat); }
+
+/* ----------------- Chip / nhãn ----------------- */
+/* Nhãn nhỏ bo tròn để hiển thị trạng thái; biến thể màu bên dưới theo ý nghĩa */
+.chip {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+}
+.chip-xanh { background: #dcfce7; color: #15803d; }       /* trạng thái tốt / còn hàng */
+.chip-do { background: #fee2e2; color: #b91c1c; }         /* trạng thái lỗi / hết hàng */
+.chip-vang { background: #fef9c3; color: #a16207; }       /* trạng thái chờ / cảnh báo */
+.chip-xam { background: #eef2f7; color: #475569; }        /* trạng thái trung tính */
+.chip-xanh-duong { background: #dbeafe; color: #1d4ed8; } /* nhãn thông tin */
+.chip-cam { background: #ffedd5; color: #c2410c; }        /* nhãn nhấn mạnh */
+
+/* Nút thao tác trong bảng đơn hàng */
+.nut-don { display: flex; flex-wrap: wrap; gap: 5px; }
+.nut-xn { background: #dcfce7; color: #15803d; }
+.nut-xn:hover { background: #bbf7d0; }
+
+/* ----------------- Modal ----------------- */
+/* Lớp nền mờ phủ toàn màn hình, canh giữa hộp thoại (z-index cao để nổi trên cùng) */
+.modal-nen {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5);
+  display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px;
+}
+/* Hộp thoại modal: giới hạn chiều rộng/cao, cho cuộn dọc nếu nội dung dài */
+.modal-hop { background: #fff; border-radius: 14px; width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; box-shadow: var(--bong-noi); }
+/* Phần đầu modal: tiêu đề + nút đóng */
+.modal-dau { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--vien); }
+.modal-dau h3 { font-size: 17px; font-weight: 700; }
+/* Nút đóng modal (dấu X) */
+.nut-dong { border: none; background: none; font-size: 18px; cursor: pointer; color: #94a3b8; }
+.nut-dong:hover { color: var(--chu-dam); }
+/* Phần thân modal chứa nội dung / form */
+.modal-than { padding: 22px; }
+
+/* ----------------- Form ----------------- */
+/* Khối một trường nhập liệu (nhãn + ô input) */
+.o-nhap { margin-bottom: 15px; }
+.o-nhap label { display: block; margin-bottom: 6px; font-size: 13.5px; font-weight: 600; color: #334155; }
+/* Dấu (*) đánh dấu trường bắt buộc nhập */
+.bat-buoc { color: var(--do); }
+/* Kiểu chung cho mọi ô nhập trong form (input, select, textarea) */
+.o-nhap input, .o-nhap select, .o-nhap textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--vien);
+  border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff;
+}
+.o-nhap input:focus, .o-nhap select:focus, .o-nhap textarea:focus {
+  outline: none; border-color: var(--mau-chinh); box-shadow: 0 0 0 3px var(--mau-chinh-nhat);
+}
+.o-nhap textarea { min-height: 76px; resize: vertical; }
+/* Hàng nút ở cuối form (Lưu / Hủy), canh phải */
+.nut-form { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+
+/* Hộp thông báo lỗi (nền đỏ nhạt) hiển thị khi submit form thất bại */
+.bao-loi { background: #fef2f2; color: var(--do); padding: 11px 14px; border-radius: 8px; font-size: 14px; margin-bottom: 12px; border: 1px solid #fecaca; }
+/* Ô mật khẩu có nút ẩn/hiện */
+.o-mk { position: relative; }
+.o-mk input { width: 100%; padding-right: 44px; }
+.nut-con-mat { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: none; cursor: pointer; padding: 4px; color: var(--chu-nhat); display: flex; align-items: center; }
+.nut-con-mat svg { width: 20px; height: 20px; }
+.nut-con-mat:hover { color: var(--mau-chinh); }
+
+/* Hộp thông báo thành công (nền xanh nhạt) sau khi lưu/thao tác thành công */
+.bao-thanh-cong { background: #f0fdf4; color: var(--xanh-la); padding: 11px 14px; border-radius: 8px; font-size: 14px; margin-bottom: 12px; border: 1px solid #bbf7d0; }
+
+/* ----------------- Trang đăng nhập (bố cục 2 cột) ----------------- */
+/* Khung đăng nhập chia 2 cột: giới thiệu (trái) + form đăng nhập (phải) */
+.dang-nhap-man { display: flex; min-height: 100vh; }
+/* Cột trái: nền gradient navy, hiển thị thương hiệu và tính năng nổi bật */
+.dang-nhap-trai {
+  flex: 1; background: linear-gradient(135deg, #1e3a8a, #0f2350); color: #fff;
+  padding: 56px; display: flex; flex-direction: column; justify-content: center;
+}
+.dang-nhap-trai .thuong-hieu { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; margin-bottom: 24px; }
+.dang-nhap-trai h2 { font-size: 30px; font-weight: 800; line-height: 1.3; margin-bottom: 16px; }
+.dang-nhap-trai p { color: #cbd5e1; font-size: 15px; margin-bottom: 28px; max-width: 440px; }
+.dang-nhap-trai .tinh-nang { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 15px; }
+.dang-nhap-trai .tinh-nang .cham { width: 26px; height: 26px; border-radius: 7px; background: rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; }
+/* Cột phải: nền trắng, chứa form đăng nhập canh giữa */
+.dang-nhap-phai { width: 460px; max-width: 100%; display: flex; align-items: center; justify-content: center; padding: 40px; background: #fff; }
+.hop-dang-nhap { width: 100%; max-width: 360px; }
+.hop-dang-nhap h1 { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+.hop-dang-nhap .phu-de { color: var(--chu-nhat); font-size: 14px; margin-bottom: 26px; }
+/* Khối gợi ý tài khoản đăng nhập mẫu (demo) */
+.goi-y-dang-nhap { margin-top: 18px; font-size: 13px; color: var(--chu-nhat); background: var(--mau-chinh-nhat); border-radius: 8px; padding: 12px; line-height: 1.7; }
+/* Màn hình nhỏ: ẩn cột giới thiệu, form chiếm toàn bộ chiều rộng */
+@media (max-width: 820px) { .dang-nhap-trai { display: none; } .dang-nhap-phai { width: 100%; } }
+
+/* ----------------- Dashboard (Tổng quan) ----------------- */
+/* Lưới thẻ thống kê tự co giãn theo độ rộng màn hình */
+.luoi-the {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px; margin-bottom: 22px;
+}
+/* Thẻ thống kê đơn (vd: Doanh thu, Số đơn, Tồn kho...) */
+.the-thong-ke {
+  background: #fff; border-radius: 12px; padding: 18px 20px; box-shadow: var(--bong);
+  border: 1px solid var(--vien); display: flex; align-items: center; gap: 16px;
+}
+/* Ô icon vuông bo góc trong thẻ thống kê */
+.the-thong-ke .icon-box {
+  width: 50px; height: 50px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.the-thong-ke .icon-box svg { width: 26px; height: 26px; }
+.the-thong-ke .nhan { color: var(--chu-nhat); font-size: 13.5px; margin-bottom: 4px; }  /* tên chỉ số */
+.the-thong-ke .so { font-size: 22px; font-weight: 800; color: var(--chu-dam); }         /* giá trị chỉ số */
+/* Bộ màu icon cho từng thẻ thống kê (xanh dương / lá / cam / tím / hồng) */
+.mau-1 .icon-box { background: #eff6ff; color: #2563eb; }
+.mau-2 .icon-box { background: #f0fdf4; color: #16a34a; }
+.mau-3 .icon-box { background: #fffbeb; color: #d97706; }
+.mau-4 .icon-box { background: #f5f3ff; color: #7c3aed; }
+.mau-5 .icon-box { background: #fdf2f8; color: #db2777; }
+
+/* Lưới 2 cột cho các khối nội dung (vd: biểu đồ + bảng) */
+.luoi-2-cot { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+/* Màn hình hẹp: gộp về 1 cột */
+@media (max-width: 900px) { .luoi-2-cot { grid-template-columns: 1fr; } }
+
+/* Khối thẻ trắng dùng chung để bọc nội dung (biểu đồ, bảng nhỏ...) */
+.khoi { background: #fff; border-radius: 12px; padding: 20px; box-shadow: var(--bong); border: 1px solid var(--vien); }
+.khoi h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.khoi-bang { overflow-x: auto; }
+.khoi .bang th, .khoi .bang td { padding: 10px 8px; }
+
+/* Biểu đồ cột doanh thu (vẽ bằng CSS, không dùng thư viện) */
+/* Trục đáy là border-bottom; các cột canh đáy nhờ align-items: flex-end */
+.bieu-do {
+  display: flex; align-items: flex-end; gap: 14px; height: 220px;
+  padding: 10px 4px 0; border-bottom: 2px solid var(--vien); position: relative;
+}
+/* Một cột trong biểu đồ: gồm giá trị, thanh cột và nhãn ngày */
+.bieu-do-cot { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 8px; }
+.bieu-do-cot .gia-tri { font-size: 11.5px; font-weight: 700; color: var(--chu-dam); white-space: nowrap; }  /* số doanh thu trên đỉnh cột */
+/* Thanh cột; chiều cao được set động bằng inline-style trong React theo dữ liệu */
+.bieu-do-cot .thanh {
+  width: 60%; max-width: 46px; border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, #60a5fa, #2563eb); min-height: 4px; transition: 0.2s;
+}
+.bieu-do-cot:hover .thanh { background: linear-gradient(180deg, #3b82f6, #1d4ed8); }
+.bieu-do-cot .nhan-ngay { font-size: 11.5px; color: var(--chu-nhat); }  /* nhãn ngày dưới chân cột */
+
+/* Chữ cảnh báo (vd: sắp hết hàng) tô đỏ đậm */
+.canh-bao { color: var(--do); font-weight: 700; }
+
+/* ----------------- Trang bán hàng ----------------- */
+/* Bố cục bán hàng: danh sách sản phẩm (rộng hơn) bên trái, giỏ hàng bên phải */
+.ban-hang-luoi { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+/* Màn hình hẹp: xếp dọc 1 cột */
+@media (max-width: 950px) { .ban-hang-luoi { grid-template-columns: 1fr; } }
+/* Lưới các thẻ sản phẩm có thể cuộn dọc khi nhiều mặt hàng */
+.danh-sach-sp {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  gap: 12px; max-height: 72vh; overflow-y: auto; padding-right: 4px;
+}
+/* Thẻ sản phẩm: bấm để thêm vào giỏ hàng */
+.the-sp {
+  background: #fff; border: 1px solid var(--vien); border-radius: 10px;
+  padding: 12px; cursor: pointer; transition: 0.15s;
+}
+.the-sp:hover { border-color: var(--mau-chinh); box-shadow: var(--bong); transform: translateY(-2px); }
+/* Vùng ảnh / icon đại diện trên đầu thẻ sản phẩm */
+.the-sp .anh-the {
+  height: 70px; border-radius: 8px; margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #dbeafe, #eff6ff); font-size: 26px;
+}
+.the-sp .ten { font-weight: 600; font-size: 13.5px; margin-bottom: 6px; line-height: 1.35; }  /* tên sản phẩm */
+.the-sp .gia { color: var(--mau-chinh-dam); font-weight: 800; }                                /* giá bán */
+.the-sp .ton { font-size: 12px; color: var(--chu-nhat); margin-top: 2px; }                     /* số lượng tồn */
+
+/* Giỏ hàng: cố định (sticky) bên phải để luôn thấy khi cuộn danh sách sản phẩm */
+.gio-hang { background: #fff; border-radius: 12px; padding: 18px; box-shadow: var(--bong); border: 1px solid var(--vien); position: sticky; top: 86px; align-self: start; }
+.gio-hang h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+/* Một dòng sản phẩm trong giỏ (tên + ô số lượng + thành tiền) */
+.dong-gio { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+/* Ô nhập số lượng nhỏ trong dòng giỏ hàng */
+.dong-gio input { width: 56px; padding: 5px; text-align: center; border: 1px solid var(--vien); border-radius: 6px; }
+/* Dòng tổng tiền của giỏ hàng (nổi bật, canh phải) */
+.tong-tien-gio { font-size: 20px; font-weight: 800; color: var(--mau-chinh-dam); text-align: right; margin: 14px 0; }
+
+/* badge (giữ tương thích với trang đơn hàng) */
+/* Nhãn trạng thái đơn hàng; biến thể bên dưới theo trạng thái */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge-thanh-cong { background: #dcfce7; color: #15803d; }  /* đơn hoàn thành */
+.badge-huy { background: #fee2e2; color: #b91c1c; }         /* đơn đã hủy */
+.badge-cho { background: #fef9c3; color: #a16207; }         /* đơn chờ xử lý */
+
+/* Ảnh xem trước trong form (khi nhập URL hoặc tải ảnh lên) */
+.anh-xem-truoc {
+  width: 90px; height: 90px; object-fit: cover; border-radius: 8px;
+  border: 1px solid var(--vien); margin-top: 10px; background: #f8fafc;
+}
+
+/* ----------------- Phân trang ----------------- */
+/* Thanh phân trang dưới bảng: thông tin trang (trái) + nút chuyển trang (phải) */
+.phan-trang { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; flex-wrap: wrap; gap: 10px; }
+.phan-trang-tt { font-size: 13.5px; color: var(--chu-nhat); }   /* dòng "Hiển thị x / y bản ghi" */
+.phan-trang-nut { display: flex; align-items: center; gap: 10px; }  /* cụm nút trước/sau */
+.phan-trang-so { font-size: 14px; font-weight: 600; }           /* số trang hiện tại */
+/* Nút bị vô hiệu (vd: trang đầu/cuối): làm mờ và đổi con trỏ */
+.nut:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ----------------- Khi IN / xuất PDF (ẩn menu, nút, chỉ in nội dung báo cáo) ----------------- */
+/* @media print: bộ quy tắc chỉ áp dụng khi in hoặc xuất ra PDF */
+@media print {
+  /* Ẩn các thành phần điều hướng/tương tác không cần in (class .khong-in để chủ động ẩn) */
+  .sidebar, .thanh-tren, .khong-in, .nut { display: none !important; }
+  .noi-dung { padding: 0 !important; }
+  body { background: #fff; }
+  /* Bỏ đổ bóng, thêm viền mảnh và tránh ngắt trang giữa khối khi in */
+  .khoi, .the-bang, .the-thong-ke { box-shadow: none !important; border: 1px solid #cbd5e1; break-inside: avoid; }
+  .luoi-the { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  /* Khi in HÓA ĐƠN: chỉ hiển thị vùng hóa đơn, ẩn mọi thứ khác */
+  /* Bước 1: ẩn (visibility) toàn bộ phần tử trên trang */
+  body.dang-in-hoa-don * { visibility: hidden !important; }
+  /* Bước 2: hiện lại riêng vùng hóa đơn và mọi phần tử con của nó */
+  body.dang-in-hoa-don .vung-hoa-don,
+  body.dang-in-hoa-don .vung-hoa-don * { visibility: visible !important; }
+  /* Bỏ nền mờ của modal khi in để trang in nền trắng sạch */
+  body.dang-in-hoa-don .modal-nen { background: #fff !important; }
+  /* Trải vùng hóa đơn ra toàn trang giấy để in đầy đủ nội dung */
+  body.dang-in-hoa-don .vung-hoa-don { position: fixed; inset: 0; margin: 0; padding: 16px; }
+}

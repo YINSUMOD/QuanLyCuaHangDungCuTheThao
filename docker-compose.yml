@@ -1,0 +1,80 @@
+# =============================================================================
+# Docker Compose - Khởi chạy toàn bộ hệ thống quản lý cửa hàng dụng cụ thể thao
+# Gồm 3 service tách biệt: database (MySQL) - backend (Node.js API) - frontend (React)
+# =============================================================================
+
+# Khai báo danh sách các service (container) sẽ được Compose tạo và quản lý
+services:
+  # ----- Service 1: Cơ sở dữ liệu MySQL -----
+  database:
+    image: mysql:8.0                              # Dùng image MySQL phiên bản 8.0 từ Docker Hub
+    container_name: cuahang_db                    # Đặt tên cố định cho container CSDL
+    restart: unless-stopped                       # Tự khởi động lại nếu lỗi, trừ khi người dùng chủ động dừng
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci   # Ép charset utf8mb4 cho server (chắc chắn tiếng Việt)
+    environment:                                 # Biến môi trường cấu hình cho MySQL
+      MYSQL_ROOT_PASSWORD: root_secret          # Mật khẩu tài khoản root của MySQL
+      MYSQL_DATABASE: cuahang_the_thao          # Tên CSDL được tạo tự động
+      MYSQL_USER: app_user                      # Tài khoản ứng dụng dùng để kết nối
+      MYSQL_PASSWORD: app_secret                # Mật khẩu của tài khoản ứng dụng app_user
+    ports:                                       # Ánh xạ cổng giữa máy thật và container
+      - "3307:3306"                             # Mở cổng 3307 ở máy thật để tiện kiểm tra
+    volumes:                                     # Gắn volume/thư mục vào container
+      - db_data:/var/lib/mysql                   # Lưu dữ liệu bền vững (không mất khi tắt container)
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro   # Tự chạy file khởi tạo CSDL (chỉ đọc)
+    healthcheck:                                 # Kiểm tra MySQL đã sẵn sàng chưa
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_secret"]   # Lệnh ping kiểm tra kết nối
+      interval: 10s                              # Khoảng cách giữa 2 lần kiểm tra
+      timeout: 5s                                # Thời gian chờ tối đa mỗi lần kiểm tra
+      retries: 10                               # Số lần thử lại trước khi coi là không khỏe
+    networks:                                    # Tham gia mạng nội bộ để các service khác gọi tới
+      - mang_noi_bo
+
+  # ----- Service 2: Backend API (Node.js + Express) -----
+  backend:
+    build: ./backend                             # Build image từ Dockerfile trong thư mục ./backend
+    container_name: cuahang_backend              # Đặt tên cố định cho container backend
+    restart: unless-stopped                      # Tự khởi động lại nếu lỗi, trừ khi chủ động dừng
+    environment:                                 # Biến môi trường cấu hình cho ứng dụng Node.js
+      NODE_ENV: production                       # Chạy ở chế độ production
+      PORT: 5000                                 # Cổng mà server Express lắng nghe bên trong container
+      DB_HOST: database                         # Trỏ tới tên service database ở trên
+      DB_PORT: 3306                             # Cổng MySQL bên trong mạng nội bộ (không phải 3307)
+      DB_USER: app_user                         # Tài khoản dùng để backend kết nối CSDL
+      DB_PASSWORD: app_secret                   # Mật khẩu tài khoản kết nối CSDL
+      DB_NAME: cuahang_the_thao                 # Tên CSDL mà backend sử dụng
+      JWT_SECRET: hay_thay_doi_chuoi_bi_mat_nay  # Khóa bí mật để ký token đăng nhập
+      JWT_EXPIRES_IN: 1d                         # Thời gian hết hạn token
+    ports:                                       # Ánh xạ cổng 5000 ra máy thật để gọi API
+      - "5000:5000"
+    volumes:                                     # Gắn volume lưu trữ file
+      - uploads_data:/app/uploads               # Lưu ảnh người dùng tải lên (bền vững)
+    depends_on:                                  # Khai báo phụ thuộc khởi động
+      database:
+        condition: service_healthy              # Chỉ khởi động khi MySQL đã sẵn sàng (qua healthcheck)
+    networks:                                    # Tham gia mạng nội bộ để gọi tới database theo tên
+      - mang_noi_bo
+
+  # ----- Service 3: Frontend GỘP (web bán hàng + hệ thống quản trị) + Nginx -----
+  # Một container duy nhất phục vụ cả 2 giao diện:
+  #   http://localhost:8080         -> Web bán hàng cho khách
+  #   http://localhost:8080/quan-ly -> Hệ thống quản trị
+  frontend:
+    build: ./frontend                            # Build image gộp (2 app React build tĩnh + Nginx) từ ./frontend
+    container_name: cuahang_frontend             # Đặt tên cố định cho container frontend
+    restart: unless-stopped                      # Tự khởi động lại nếu lỗi, trừ khi chủ động dừng
+    ports:                                        # Ánh xạ cổng Nginx (80) ra cổng 8080 máy thật
+      - "8080:80"                               # Truy cập web bán hàng tại http://localhost:8080, quản trị tại /quan-ly
+    depends_on:                                  # Khởi động sau khi backend đã chạy
+      - backend
+    networks:                                    # Tham gia mạng nội bộ chung
+      - mang_noi_bo
+
+# Vùng lưu trữ dữ liệu (named volumes do Docker quản lý, tồn tại độc lập với container)
+volumes:
+  db_data:        # dữ liệu MySQL
+  uploads_data:   # ảnh sản phẩm tải lên
+
+# Mạng nội bộ để các service gọi nhau theo tên
+networks:
+  mang_noi_bo:
+    driver: bridge   # Loại mạng bridge: tạo mạng ảo riêng cho các container trong cùng compose
